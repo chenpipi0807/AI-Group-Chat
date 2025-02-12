@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>群聊对话展示</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/default.min.css  ">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js  "></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/12.3.2/markdown-it.min.js  "></script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js  "></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #c7c7c7;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .chat-container {
+            width: 90%;
+            max-width: 1000px;
+            height: 90vh; /* 使容器高度占满90%视口高度 */
+            background-color: #2e2e2e;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            background-color: #3a3a3a;
+            color: #fff;
+            padding: 15px;
+            text-align: center;
+            position: relative;
+        }
+        .chat-header .buttons {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+        }
+        .chat-header .buttons button {
+            background: none;
+            border: none;
+            color: #fff;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        .chat-messages {
+            flex: 1; /* 使消息区域填满剩余空间 */
+            overflow-y: auto;
+            padding: 20px;
+            border-bottom: 1px solid #444;
+        }
+        .chat-input {
+            display: flex;
+            padding: 10px;
+            background-color: #3a3a3a;
+        }
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            margin-right: 10px;
+            background-color: #2e2e2e;
+            color: #c7c7c7;
+        }
+        .chat-input button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .chat-input button:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+        }
+        .message .role {
+            font-weight: bold;
+        }
+        .message .content {
+            margin-left: 10px;
+            padding: 10px;
+            border-radius: 15px;
+            display: inline-block;
+            max-width: 70%;
+        }
+        .message.user {
+            justify-content: flex-end;
+        }
+        .message.user .content {
+            background-color: #007bff;
+            color: #fff;
+            border-radius: 15px 15px 0 15px;
+        }
+        .message.bot {
+            justify-content: flex-start;
+        }
+        .message.bot.deepseek .content {
+            background-color: #444;
+            color: #c7c7c7;
+            border-radius: 15px 15px 15px 0;
+        }
+        .message.bot.kimi .content {
+            background-color: #555;
+            color: #c7c7c7;
+            border-radius: 15px 15px 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            人类早期被AI驯服の群
+            <div class="buttons">
+                <button>🔍</button>
+                <button>🔔</button>
+                <button>⋮</button>
+            </div>
+        </div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input">
+            <input type="text" id="user-input" placeholder="请输入您的问题...">
+            <button id="send-button">发送</button>
+        </div>
+    </div>
+
+    <script>
+        const md = window.markdownit();
+        const socket = io();
+
+        document.getElementById('send-button').addEventListener('click', sendMessage);
+        document.getElementById('user-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            const userInput = document.getElementById('user-input').value;
+            if (!userInput) return;
+
+            const chatMessages = document.getElementById('chat-messages');
+            const userMessageElement = document.createElement('div');
+            userMessageElement.className = 'message user';
+            userMessageElement.innerHTML = `<span class="role">您:</span> <span class="content">${userInput}</span>`;
+            chatMessages.appendChild(userMessageElement);
+
+            // 发送消息到服务器
+            socket.emit('send_message', { input: userInput });
+
+            document.getElementById('user-input').value = ''; // 清空输入框
+            chatMessages.scrollTop = chatMessages.scrollHeight; // 滚动到底部
+        }
+
+        // 监听服务器返回的消息
+        socket.on('chat_response', function(data) {
+            const chatMessages = document.getElementById('chat-messages');
+            data.forEach(message => {
+                if (message.role !== '您') { // 只显示AI的回复
+                    const messageElement = document.createElement('div');
+                    const roleClass = message.role === 'DeepSeek' ? 'deepseek' : (message.role === 'Kimi' ? 'kimi' : '');
+                    messageElement.className = `message bot ${roleClass}`;
+                    const renderedContent = md.render(message.content);
+                    messageElement.innerHTML = `<span class="role">${message.role}:</span> <span class="content">${renderedContent}</span>`;
+                    chatMessages.appendChild(messageElement);
+                }
+            });
+            chatMessages.scrollTop = chatMessages.scrollHeight; // 滚动到底部
+        });
+    </script>
+</body>
+</html> 
