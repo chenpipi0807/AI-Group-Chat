@@ -52,7 +52,7 @@ def handle_deepseek_message(prompt):
     try:
         # 使用流式请求
         stream = client.chat.completions.create(
-            model="ep-20250212181835-cb6kv",  # 使用正确的模型 ID
+            model="自己去买我买的是飞舟的deepseek不崩",  # 使用正确的模型 ID
             messages=[{"role": "user", "content": full_prompt}],
             stream=True
         )
