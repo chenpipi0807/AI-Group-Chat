@@ -12,9 +12,9 @@ app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 # 配置 API 详细信息
-DEEPSEEK_API_KEY = "5e64762c-ed8f-4b2f-a02c-c0aba3b91b8b"
+DEEPSEEK_API_KEY = "自己去买"
 KIMICHAT_API_URL = "https://api.moonshot.cn/v1/chat/completions"
-KIMICHAT_API_KEY = "sk-knAXk1P71dz8jHgMdK84yorNsDZKEfrdsbYwOrnyR63udqTV"
+KIMICHAT_API_KEY = "自己去买"
 
 # 初始化 Ark 客户端
 client = Ark(
