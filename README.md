@@ -5,8 +5,12 @@ api要自己去买很便宜
 key输进去就能用，飞舟那个id也得输入下
 
 去看教程吧少侠
+
+
 火山飞舟：
 https://www.volcengine.com/docs/82379/1298454
+
+
 kimi：
 https://platform.moonshot.cn/console/account
 
