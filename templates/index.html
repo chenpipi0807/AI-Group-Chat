@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>群聊对话展示</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/default.min.css  ">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js  "></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/12.3.2/markdown-it.min.js  "></script>
-    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js  "></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/12.3.2/markdown-it.min.js"></script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -115,6 +115,33 @@
             color: #c7c7c7;
             border-radius: 15px 15px 15px 0;
         }
+        /* 代码块样式 */
+        pre {
+            background-color: #222;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            position: relative;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+        }
+        /* 复制按钮样式 */
+        .copy-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #444;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .copy-button:hover {
+            background-color: #555;
+        }
     </style>
 </head>
 <body>
@@ -171,7 +198,29 @@
                     const roleClass = message.role === 'DeepSeek' ? 'deepseek' : (message.role === 'Kimi' ? 'kimi' : '');
                     messageElement.className = `message bot ${roleClass}`;
                     const renderedContent = md.render(message.content);
-                    messageElement.innerHTML = `<span class="role">${message.role}:</span> <span class="content">${renderedContent}</span>`;
+                    // 检查内容是否是代码
+                    if (message.content.startsWith('```')) {
+                        const codeBlock = document.createElement('pre');
+                        const code = document.createElement('code');
+                        const copyButton = document.createElement('button');
+                        copyButton.className = 'copy-button';
+                        copyButton.textContent = '复制';
+                        copyButton.addEventListener('click', function() {
+                            const text = code.textContent;
+                            navigator.clipboard.writeText(text).then(() => {
+                                alert('代码已复制到剪贴板');
+                            }).catch(err => {
+                                console.error('复制失败:', err);
+                            });
+                        });
+                        code.textContent = message.content.replace(/```[a-zA-Z]*\n?/, '').replace(/```/, '');
+                        codeBlock.appendChild(copyButton);
+                        codeBlock.appendChild(code);
+                        messageElement.innerHTML = `<span class="role">${message.role}:</span>`;
+                        messageElement.appendChild(codeBlock);
+                    } else {
+                        messageElement.innerHTML = `<span class="role">${message.role}:</span> <span class="content">${renderedContent}</span>`;
+                    }
                     chatMessages.appendChild(messageElement);
                 }
             });
@@ -179,4 +228,4 @@
         });
     </script>
 </body>
-</html> 
+</html>
